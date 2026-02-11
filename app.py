@@ -19,11 +19,44 @@ Compare standard LLM answers with RAG-enhanced answers using local document cont
 """)
 
 # --- Sidebar: Configuration & Stats ---
-st.sidebar.header("Configuration")
+st.sidebar.header("🛡️ App Settings")
 google_api_key = st.sidebar.text_input("Google API Key", value=os.getenv("GOOGLE_API_KEY", ""), type="password")
 
 if google_api_key:
     os.environ["GOOGLE_API_KEY"] = google_api_key
+
+st.sidebar.divider()
+st.sidebar.header("🧪 Experimentation Dashboard")
+
+# Persona selection
+persona = st.sidebar.selectbox(
+    "Select Persona", 
+    ["Default", "Journalist", "Analyst", "Skeptic", "Optimist"],
+    help="Changes the tone and focus of the AI's response."
+)
+
+# Generation parameters
+temperature = st.sidebar.slider(
+    "Temperature", 
+    min_value=0.0, 
+    max_value=1.0, 
+    value=0.7, 
+    step=0.1,
+    help="Higher values make the output more creative, lower values more deterministic."
+)
+
+token_limit = st.sidebar.slider(
+    "Max Output Tokens", 
+    min_value=50, 
+    max_value=1000, 
+    value=500, 
+    step=50,
+    help="Limits the response length. If too low, answers may be cut off."
+)
+
+st.sidebar.divider()
+st.sidebar.subheader("🔎 Filters")
+newspaper = st.sidebar.selectbox("Newspaper Source", ["All", "The News", "Tribune"])
 
 # Initialize Vector Store
 @st.cache_resource
@@ -44,10 +77,6 @@ def get_vector_store():
 vs = get_vector_store()
 rag_engine = RAGEngine(vs)
 
-st.sidebar.divider()
-st.sidebar.subheader("Filters")
-newspaper = st.sidebar.selectbox("Newspaper", ["All", "The News", "Tribune"])
-
 # --- Main UI: Search ---
 query = st.text_input("Enter your question about Pakistani news:", placeholder="e.g., What are the latest developments in the PSL?", key="query_input")
 
@@ -55,28 +84,40 @@ if query:
     if not google_api_key:
         st.error("Please provide a Google API Key in the sidebar.")
     else:
-        with st.spinner("Generating answers..."):
+        with st.spinner(f"Generating as {persona}..."):
             # Columns for comparison
             col1, col2 = st.columns(2)
             
             # --- RAG Answer ---
             with col1:
                 st.subheader("🔍 With RAG")
-                rag_answer, sources = rag_engine.generate_rag_answer(query, newspaper_filter=newspaper)
-                st.write(rag_answer)
+                rag_answer, sources = rag_engine.generate_rag_answer(
+                    query, 
+                    newspaper_filter=newspaper,
+                    persona=persona,
+                    temperature=temperature,
+                    max_tokens=token_limit
+                )
+                st.markdown(rag_answer)
                 
                 if sources:
-                    with st.expander("View Source Documents"):
+                    with st.expander("📂 View Source Chunks (Context)"):
                         for i, doc in enumerate(sources):
-                            st.markdown(f"**{i+1}. {doc['metadata']['title']}** ({doc['metadata']['newspaper']} - {doc['metadata']['date']})")
-                            st.caption(doc['text'][:300] + "...")
+                            st.markdown(f"**Chunk {i+1}: {doc['metadata']['title']}**")
+                            st.caption(f"Source: {doc['metadata']['newspaper']} | Date: {doc['metadata']['date']}")
+                            st.info(doc['text'])
                             st.divider()
 
             # --- Plain LLM Answer ---
             with col2:
                 st.subheader("🤖 Plain LLM (No RAG)")
-                plain_answer = rag_engine.generate_plain_answer(query)
-                st.write(plain_answer)
+                plain_answer = rag_engine.generate_plain_answer(
+                    query,
+                    persona=persona,
+                    temperature=temperature,
+                    max_tokens=token_limit
+                )
+                st.markdown(plain_answer)
 
 # --- Footer ---
 st.sidebar.divider()

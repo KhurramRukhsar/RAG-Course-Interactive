@@ -4,6 +4,14 @@ from vector_store import VectorStore
 
 MODEL_NAME = "gemini-flash-latest"
 
+PERSONA_PROMPTS = {
+    "Default": "You are a helpful assistant for a Pakistani news analysis system.",
+    "Journalist": "You are a professional reporter. Summarize the news based only on the provided context. Maintain an objective tone.",
+    "Analyst": "You are a data analyst. Look for patterns, key figures, and implications in the news context provided.",
+    "Skeptic": "You are a critical thinker. Examine the news provided for any biases, missing information, or contradictions.",
+    "Optimist": "You are a positive commentator. Highlight the good news, potential opportunities, and hopeful developments in the provided context."
+}
+
 class RAGEngine:
     def __init__(self, vector_store: VectorStore):
         self.vector_store = vector_store
@@ -15,19 +23,15 @@ class RAGEngine:
             
         self.model = genai.GenerativeModel(MODEL_NAME)
 
-    def generate_rag_answer(self, query, newspaper_filter="All", date_filter=None):
+    def generate_rag_answer(self, query, newspaper_filter="All", date_filter=None, 
+                           persona="Default", temperature=0.7, max_tokens=300):
         """
         Generates an answer using RAG (Retrieval-Augmented Generation).
-        Returns: answer_text, source_documents (list of dicts)
         """
         # 1. Retrieve context
-        print(f"Retrieving for query: {query}, filter: {newspaper_filter}")
-        
-        # If vector store is empty, try to load or build
         if self.vector_store.index is None:
-             print("Index not loaded. Attempting to load...")
              if not self.vector_store.load_index():
-                 return "Error: Vector store not initialized. Please build the index first.", []
+                 return "Error: Vector store not initialized.", []
 
         retrieved_docs = self.vector_store.search(
             query, 
@@ -44,29 +48,55 @@ class RAGEngine:
             [f"--- Document {i+1} ---\n{doc['text']}" for i, doc in enumerate(retrieved_docs)]
         )
         
+        persona_instruction = PERSONA_PROMPTS.get(persona, PERSONA_PROMPTS["Default"])
+        
         system_instruction = (
-            "You are a helpful assistant for a RAG system analyzing Pakistani news.\n"
+            f"{persona_instruction}\n"
             "Answer the user's question based ONLY on the provided context.\n"
             "If the answer is not in the context, say 'I cannot answer this based on the available news articles.'\n"
-            "Cite the newspaper if relevant."
+            "STRICT CONSTRAINTS:\n"
+            "- Your response must be brief and strictly under the word count that would fit in the requested token limit.\n"
+            "- Ensure your bullet points are complete sentences; do not cut off mid-sentence.\n"
+            "- Do not repeat the context; provide insights.\n"
+            "- Use bullet points for the main points of your response.\n"
+            "- Cite newspapers where applicable."
         )
         
         prompt = f"{system_instruction}\n\nContext:\n{context_str}\n\nQuestion: {query}\n\nAnswer:"
         
         # 3. Generate Answer
         try:
-            response = self.model.generate_content(prompt)
+            generation_config = genai.types.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens
+            )
+            response = self.model.generate_content(prompt, generation_config=generation_config)
             return response.text, retrieved_docs
         except Exception as e:
             return f"Error generating answer: {e}", []
 
-    def generate_plain_answer(self, query):
+    def generate_plain_answer(self, query, persona="Default", temperature=0.7, max_tokens=300):
         """
         Generates an answer using the LLM's internal knowledge only (No RAG).
         """
-        prompt = f"Answer the following question based on your general knowledge.\n\nQuestion: {query}\n\nAnswer:"
+        persona_instruction = PERSONA_PROMPTS.get(persona, PERSONA_PROMPTS["Default"])
+        
+        system_instruction = (
+            f"{persona_instruction}\n"
+            "Answer based on your general knowledge.\n"
+            "STRICT CONSTRAINTS:\n"
+            "- Your response must be brief and under the requested token limit.\n"
+            "- Use bullet points.\n"
+        )
+        
+        prompt = f"{system_instruction}\n\nQuestion: {query}\n\nAnswer:"
+        
         try:
-            response = self.model.generate_content(prompt)
+            generation_config = genai.types.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens
+            )
+            response = self.model.generate_content(prompt, generation_config=generation_config)
             return response.text
         except Exception as e:
             return f"Error generating answer: {e}"
