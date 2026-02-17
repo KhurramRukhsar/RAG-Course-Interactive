@@ -30,7 +30,13 @@ This system has been verified using a standalone pipeline test. Observations inc
 
 ## 🏃 Quick Start
 
-1.  **Navigate to the project and install requirements**:
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/KhurramRukhsar/RAG-Course-Interactive.git
+    cd RAG-Course-Interactive
+    ```
+
+2.  **Navigate to the project and install requirements**:
     ```bash
     cd RAG_Course
     pip install -r requirements.txt

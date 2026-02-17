@@ -30,7 +30,13 @@ The application is structured into four educational labs:
 
 ## 🏃 How to Run
 
-1.  **Navigate to the project directory**:
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/KhurramRukhsar/RAG-Course-Interactive.git
+    cd RAG-Course-Interactive
+    ```
+
+2.  **Navigate to the project directory**:
     ```bash
     cd RAG_Course
     ```
