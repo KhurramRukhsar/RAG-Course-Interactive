@@ -45,15 +45,6 @@ temperature = st.sidebar.slider(
     help="Higher values make the output more creative, lower values more deterministic."
 )
 
-token_limit = st.sidebar.slider(
-    "Max Output Tokens", 
-    min_value=50, 
-    max_value=1000, 
-    value=500, 
-    step=50,
-    help="Limits the response length. If too low, answers may be cut off."
-)
-
 st.sidebar.divider()
 st.sidebar.subheader("🔎 Filters")
 newspaper = st.sidebar.selectbox("Newspaper Source", ["All", "The News", "Tribune"])
@@ -95,8 +86,7 @@ if query:
                     query, 
                     newspaper_filter=newspaper,
                     persona=persona,
-                    temperature=temperature,
-                    max_tokens=token_limit
+                    temperature=temperature
                 )
                 st.markdown(rag_answer)
                 
@@ -114,8 +104,7 @@ if query:
                 plain_answer = rag_engine.generate_plain_answer(
                     query,
                     persona=persona,
-                    temperature=temperature,
-                    max_tokens=token_limit
+                    temperature=temperature
                 )
                 st.markdown(plain_answer)
 

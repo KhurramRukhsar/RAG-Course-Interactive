@@ -24,7 +24,7 @@ class RAGEngine:
         self.model = genai.GenerativeModel(MODEL_NAME)
 
     def generate_rag_answer(self, query, newspaper_filter="All", date_filter=None, 
-                           persona="Default", temperature=0.7, max_tokens=300):
+                           persona="Default", temperature=0.7):
         """
         Generates an answer using RAG (Retrieval-Augmented Generation).
         """
@@ -55,8 +55,8 @@ class RAGEngine:
             "Answer the user's question based ONLY on the provided context.\n"
             "If the answer is not in the context, say 'I cannot answer this based on the available news articles.'\n"
             "STRICT CONSTRAINTS:\n"
-            "- Your response must be brief and strictly under the word count that would fit in the requested token limit.\n"
-            "- Ensure your bullet points are complete sentences; do not cut off mid-sentence.\n"
+            "- Be concise and impactful. Do not be overly wordy.\n"
+            "- Ensure your bullet points are complete sentences.\n"
             "- Do not repeat the context; provide insights.\n"
             "- Use bullet points for the main points of your response.\n"
             "- Cite newspapers where applicable."
@@ -67,15 +67,14 @@ class RAGEngine:
         # 3. Generate Answer
         try:
             generation_config = genai.types.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens
+                temperature=temperature
             )
             response = self.model.generate_content(prompt, generation_config=generation_config)
             return response.text, retrieved_docs
         except Exception as e:
             return f"Error generating answer: {e}", []
 
-    def generate_plain_answer(self, query, persona="Default", temperature=0.7, max_tokens=300):
+    def generate_plain_answer(self, query, persona="Default", temperature=0.7):
         """
         Generates an answer using the LLM's internal knowledge only (No RAG).
         """
@@ -85,7 +84,7 @@ class RAGEngine:
             f"{persona_instruction}\n"
             "Answer based on your general knowledge.\n"
             "STRICT CONSTRAINTS:\n"
-            "- Your response must be brief and under the requested token limit.\n"
+            "- Keep it short and professionally formatted.\n"
             "- Use bullet points.\n"
         )
         
@@ -93,8 +92,7 @@ class RAGEngine:
         
         try:
             generation_config = genai.types.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens
+                temperature=temperature
             )
             response = self.model.generate_content(prompt, generation_config=generation_config)
             return response.text

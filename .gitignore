@@ -6,3 +6,10 @@ vector_store/
 env/
 venv/
 .streamlit/
+
+# Lectures & Content (RAG Course)
+Lecture_*.pdf
+lectures_content.md
+extract_lectures.py
+verify_pipeline.py
+linkedin_post.txt
