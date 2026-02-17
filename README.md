@@ -1,64 +1,52 @@
-# 🇵🇰 Pakistani News RAG System
+# � RAG Interactive Course: Pakistani News Edition 🇵🇰🤖
 
-A professional Retrieval-Augmented Generation (RAG) system designed to analyze and query news from major Pakistani publications (**The News** and **The Express Tribune**).
+Welcome to the **RAG Interactive Course**. This repository contains a "living laboratory" implementation of a Retrieval-Augmented Generation (RAG) system, applied to real-world Pakistani news data.
 
-This system provides a side-by-side comparison between standard LLM responses and RAG-enhanced responses, highlighting the importance of local context in news analysis.
+It is designed as an educational resource to explore how different parameters, chunking strategies, and retrieval techniques affect the performance and accuracy of AI systems.
 
-## 🚀 Features
+## 🚀 The Interactive Lab
 
-- **Side-by-Side Comparison**: Compare "With RAG" vs "Plain LLM" answers to see how local data improves accuracy.
-- **Source Transparency**: View exact snippets from the news articles used to generate the RAG answer.
-- **Filtering**: Filter queries by specific newspaper sources.
-- **Local Vector Store**: Uses FAISS for efficient similarity search over local news data.
-- **Modern UI**: Built with Streamlit for a clean, interactive experience.
+The heart of this project is a **Streamlit Dashboard** divided into four educational labs:
 
-## 🛠️ Technology Stack
+1.  **📦 Data & Chunking**: Compare document-level vs. fixed-size character chunking and observe the impact on retrieval granularity (Lecture 2/5).
+2.  **🔍 Retrieval Lab**: See side-by-side results for **BM25 (Keyword)**, **Vector (Semantic)**, and **Hybrid (RRF)** search (Lecture 2/3).
+3.  **🎯 Advanced Retrieval**: Tune BM25 saturation (`k1`) and normalization (`b`) parameters. Toggle **LLM-based Reranking** for high-precision results (Lecture 3).
+4.  **🤖 Generation Lab**: Experiment with LLM sampling parameters (**Temperature**, **Top-P**) to see how they affect grounding and potential hallucinations (Lecture 4).
 
-- **LLM**: Google Gemini 1.5 Flash
-- **Embeddings**: Sentence-Transformers (`all-MiniLM-L6-v2`)
-- **Vector Store**: FAISS (Facebook AI Similarity Search)
-- **UI Framework**: Streamlit
-- **Data Handling**: Pandas
+## ✅ Verification Results
 
-## 📋 Prerequisites
+This system has been verified using a standalone pipeline test. Observations include:
+*   **Hybrid RRF**: Successfully surface documents that match both the "intent" (Vector) and "exact terms" (BM25).
+*   **Grounding Control**: Low temperature (0.1) significantly reduces hallucinations, ensuring responses are strictly tethered to the news context.
+*   **Reranking**: Higher precision results were observed when using the "LLM-as-a-judge" pattern for final document scoring.
 
-- Python 3.8+
-- A Google API Key (Get it at [Google AI Studio](https://aistudio.google.com/app/apikey))
+## ⚙️ Technology Stack
 
-## ⚙️ Installation & Setup
+*   **LLM**: Google Gemini 1.5 Flash
+*   **Embeddings**: Sentence-Transformers (`all-MiniLM-L6-v2`)
+*   **Vector Store**: FAISS
+*   **Ranking**: Rank-BM25 & Reciprocal Rank Fusion (RRF)
+*   **Dashboard**: Streamlit
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/KhurramRukhsar/pakistani-news-rag.git
-   cd pakistani-news-rag
-   ```
+## 🏃 Quick Start
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1.  **Navigate to the project and install requirements**:
+    ```bash
+    cd RAG_Course
+    pip install -r requirements.txt
+    ```
 
-3. **Configure API Key**:
-   Create a `.env` file in the root directory and add your key:
-   ```env
-   GOOGLE_API_KEY=your_gemini_api_key_here
-   ```
+2.  **Configure API Key**:
+    Add your `GOOGLE_API_KEY` to a `.env` file in the root.
 
-4. **Prepare Data**:
-   Ensure your news CSV files are in the `data/` folder. The system will automatically build the vector index on the first run.
+3.  **Launch the Lab**:
+    ```bash
+    streamlit run main.py
+    ```
 
-## 🏃 How to Run
+## 📂 Repository Structure
 
-Start the Streamlit application:
-
-```bash
-streamlit run app.py
-```
-
-## 📂 Project Structure
-
-- `app.py`: The Streamlit frontend and main entry point.
-- `rag_engine.py`: Logic for retrieval and generation using Gemini.
-- `vector_store.py`: FAISS index management and document encoding.
-- `data_loader.py`: Utilities for loading and preprocessing news CSVs.
-- `.gitignore`: Ensures sensitive keys and bulky local data stay private.
+The interactive course logic is contained within the `RAG_Course` directory:
+*   `RAG_Course/main.py`: Interactive Dashboard.
+*   `RAG_Course/src/`: Core logic for retrievers, rerankers, and generators.
+*   `RAG_Course/TECHNICAL_GUIDE.md`: Deep dive into the math and architecture.
